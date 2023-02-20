@@ -5,6 +5,7 @@ import pandas as pd
 from dateutil.relativedelta import relativedelta
 from exceptions import AssetStatusError
 
+
 def calculate_fixed_assets(fixed_assets_source, model_generation_date):
 
     # ---- Preprocesamiento listado de activos fijos ---- #
@@ -12,10 +13,10 @@ def calculate_fixed_assets(fixed_assets_source, model_generation_date):
     fixed_assets_df = fixed_assets_source
 
     fixed_assets_df = fixed_assets_df.assign(
-        end_date = pd.Series(),
-        periods_remaining = pd.Series(),
-        is_active = pd.Series(),
-        is_capex = pd.Series()
+        end_date = pd.Series(dtype='datetime64[ns]'),
+        periods_remaining = pd.Series(dtype='int64'),
+        is_active = pd.Series(dtype='bool'),
+        is_capex = pd.Series(dtype='bool')
     )
     
     for asset in fixed_assets_df.index:
@@ -85,9 +86,9 @@ def calculate_fixed_assets(fixed_assets_source, model_generation_date):
     # Creacion de tabla de amortización de los CAPEX.
 
     all_amort_periods_df = pd.DataFrame({
-        'asset_id': pd.Series(),
+        'asset_id': pd.Series(dtype='int64'),
         'amort_period': pd.Series(dtype='datetime64[ns]'),
-        'amort_amount': pd.Series()
+        'amort_amount': pd.Series(dtype='float64')
     })
     
     capex_amortization = pd.DataFrame() # Inicializacion de la variable.
@@ -129,10 +130,10 @@ def calculate_fixed_assets(fixed_assets_source, model_generation_date):
     # Creacion tabla de amortización de activos en uso.
     
     curr_assets_amort_df = pd.DataFrame({
-        'asset_id': pd.Series(),
-        'asset_name': pd.Series(),
+        'asset_id': pd.Series(dtype='int64'),
+        'asset_name': pd.Series(dtype='object'),
         'amort_period': pd.Series(dtype='datetime64[ns]'),
-        'amort_amount': pd.Series()
+        'amort_amount': pd.Series(dtype='float64')
         }
     )
 
@@ -167,8 +168,6 @@ def calculate_fixed_assets(fixed_assets_source, model_generation_date):
     
     curr_assets_amort_df = pd.concat([curr_assets_amort_df, list_bridge_df], ignore_index=True)
     
-    curr_assets_amort_df.to_excel('activos.xlsx')
-
     curr_assets_amort = curr_assets_amort_df.groupby('amort_period')['amort_amount'].agg(np.sum)
 
     return capex_df, curr_assets_amort, capex_amortization
